@@ -1,6 +1,6 @@
 const NoteSchema = require("../models/NoteSchema.js");
 const { v4: uuidv4 } = require('uuid');
-const userSchema = require("../models/userSchema.js");
+const userSchema = require("../models/UserSchema.js");
 
 class NoteController {
   async addNote(req, res) {

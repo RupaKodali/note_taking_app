@@ -1,5 +1,5 @@
 // users.controller.js
-const userSchema = require("../models/userSchema.js");
+const userSchema = require("../models/UserSchema.js");
 const roleSchema = require("../models/roleSchema.js");
 const argon2 = require("argon2");
 const crypto = require("crypto");
