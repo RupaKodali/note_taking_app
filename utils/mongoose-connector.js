@@ -2,7 +2,7 @@
 
 const mongoose = require('mongoose');
 const config = require('../config')
-const options = { connectTimeoutMS: 3000, useNewUrlParser: true, useUnifiedTopology: true};
+const options = { connectTimeoutMS: 3000};
 mongoose.connect( config.app.dbURL, options)
 let mongo = mongoose.connection
 mongo.on('connecting', () => {
