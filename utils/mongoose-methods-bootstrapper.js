@@ -34,8 +34,8 @@ class ModelMethods {
       const result = await this.Model.find(query);
 
       if (!result || result.length === 0) {
-        console.log('No documents found for the provided query.');
-        return result;
+        // console.log('No documents found for the provided query.');
+        return false;
       }
 
       return result[0];
@@ -52,7 +52,7 @@ class ModelMethods {
       const result = await this.Model.find(query);
 
       if (!result || result.length === 0) {
-        console.log('No documents found for the provided query.');
+        // console.log('No documents found for the provided query.');
         return result;
       }
 
@@ -75,7 +75,7 @@ class ModelMethods {
       const result = await this.Model.paginate(query, options);
 
       if (result.docs.length === 0) {
-        console.log('No documents found for the provided query.');
+        // console.log('No documents found for the provided query.');
       }
       const { docs, totalDocs, totalPages } = result;
 

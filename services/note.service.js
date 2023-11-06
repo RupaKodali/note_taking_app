@@ -1,13 +1,14 @@
 const NoteSchema = require("../models/NoteSchema.js");
 const { v4: uuidv4 } = require('uuid');
 const userSchema = require("../models/UserSchema.js");
+const { encrypt, decrypt } = require('../utils/crypto.js')
 
 class NoteController {
   async addNote(req, res) {
     try {
       const user = await userSchema.find({ userId: req.user.userId });
       if (!user) {
-        return res.status(404).json({ message: "Invalid User" });
+        return res.status(404).json({ status: false, message: "Invalid User" });
       }
 
       // Encrypt the note content before saving it to the database
@@ -22,10 +23,10 @@ class NoteController {
       });
 
       // Return the new note document
-      return res.status(201).json(note);
+      return res.status(200).json({ status: true, data: note });
     } catch (error) {
       console.log("error", error);
-      return res.status(500).json({ message: "Internal Server Error" });
+      return res.status(500).json({ status: false, message: "Internal Server Error" });
     }
   }
 
@@ -33,7 +34,7 @@ class NoteController {
     try {
       const user = await userSchema.find({ userId: req.user.userId });
       if (!user) {
-        return res.status(404).json({ message: "Invalid User" });
+        return res.status(404).json({ status: false, message: "Invalid User" });
       }
 
       // Find the note document by its ID
@@ -47,14 +48,14 @@ class NoteController {
         let new_note = JSON.parse(JSON.stringify(note));
         new_note.description = await decrypt(note.encryptedContent, user.encryptionKey);
         delete new_note.encryptedContent
-        return res.json(new_note);
+        return res.status(200).json({ status: true, data: new_note, message: "Sucessfully opned notes" });
 
       } else {
-        return res.status(404).json({ message: "Note not found" });
+        return res.status(404).json({ status: false, message: "Note not found" });
       }
     } catch (error) {
       console.log("error", error);
-      return res.status(500).json({ message: "Internal Server Error" });
+      return res.status(500).json({ status: false, message: "Internal Server Error" });
     }
   }
 
@@ -62,7 +63,7 @@ class NoteController {
     try {
       const user = await userSchema.find({ userId: req.user.userId });
       if (!user) {
-        return res.status(404).json({ message: "Invalid User" });
+        return res.status(404).json({ status:false, message: "Invalid User" });
       }
 
       // const page = req.query.page ? parseInt(req.query.page) : 1;
@@ -71,16 +72,19 @@ class NoteController {
       // Find all notes for the user with pagination
       // const notes = await NoteSchema.paginate({ userId: req.user.userId }, page, pageSize)
       const notes = await NoteSchema.findAll({ userId: req.user.userId })
-
+      let new_notes = []
       // Decrypt the note content for each note
       for (let note of notes) {
-        note.description = await decrypt(note.encryptedContent, user.encryptionKey);
+        let new_note = JSON.parse(JSON.stringify(note));
+        new_note.description = await decrypt(note.encryptedContent, user.encryptionKey);
+        delete new_note.encryptedContent
+        new_notes.push(new_note)
       }
 
-      return res.json(notes);
+      return res.status(200).json({ status: true, data: new_notes, messgae: "Successfully listed all the notes" });
     } catch (error) {
       console.log("error", error);
-      return res.status(500).json({ message: "Internal Server Error" });
+      return res.status(500).json({status:false, message: "Internal Server Error" });
     }
   }
 

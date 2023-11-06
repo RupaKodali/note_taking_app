@@ -26,4 +26,7 @@ router.post("/generateUnlockCode", (req, res) => {
 router.post("/unlockAccount", (req, res) => {
   usersController.unlockAccount(req, res);
 });
+router.post("/logout", (req, res) => {
+  usersController.logoutUser(req, res);
+});
 module.exports = router;

@@ -3,13 +3,14 @@ const userSchema = require("../models/UserSchema.js");
 const roleSchema = require("../models/roleSchema.js");
 const argon2 = require("argon2");
 const crypto = require("crypto");
-const { v4: uuidv4 } = require('uuid');
+const { v4: uuidv4 } = require("uuid");
 const userRoleSchema = require("../models/userRoleSchema.js");
 const sendSMS = require("../utils/send-sms.js");
 const fs = require("fs");
 const fillTemplateWithData = require("../utils/templates/mange_template.js");
 const { signToken } = require("../utils/jwt.js");
 const sendCustomEmail = require("../utils/mail.js");
+const Blacklist = require("../models/Blacklist.js");
 
 class UsersController {
   async registerUser(req, res) {
@@ -17,13 +18,13 @@ class UsersController {
       // Validate the user input
       const { firstName, lastName, email, password, phone } = req.body;
       if (!firstName || !lastName || !email || !password || !phone) {
-        return res.status(400).json({ message: "Missing required fields" });
+        return res.status(400).json({ status: false, message: "Missing required fields" });
       }
 
       // Check if the user already exists
       const existingUser = await userSchema.find({ email: email });
       if (existingUser.length > 0) {
-        return res.status(409).json({ message: "User already exists" });
+        return res.status(409).json({ status: false, message: "User already exists" });
       }
 
       // Hash the password
@@ -45,7 +46,7 @@ class UsersController {
       const role = await roleSchema.find({ name: "ADMIN" });
 
       if (!role || role.length === 0) {
-        return res.status(404).json({ message: "Role not found" });
+        return res.status(404).json({ status: false, message: "Role not found" });
       }
 
       const user_role = await userRoleSchema.create({
@@ -54,11 +55,11 @@ class UsersController {
       });
 
       // Respond with success
-      res.status(201).json({ message: "User registered successfully" });
+      res.status(201).json({ status: true, message: "User registered successfully" });
     } catch (error) {
       // Handle and log any errors
       console.error(error);
-      res.status(500).json({ message: "Internal server error" });
+      res.status(500).json({ status: false, message: "Internal server error" });
     }
   }
 
@@ -78,36 +79,33 @@ class UsersController {
     });
 
     // Respond with success
-    res.status(201).json({ message: "User registered successfully" });
+    res.status(201).json({ status: true, message: "User registered successfully" });
   }
 
   async loginUser(req, res) {
     const { email, password } = req.body;
     if (!email || !password) {
-      return res.status(400).json({ message: "Missing required fields" });
+      return res.status(400).json({ status: false, message: "Missing required fields" });
     }
 
     // Find the user by email
     const user = await userSchema.find({ email: email });
     console.log("user", user);
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ status: false, message: "User not found" });
     }
 
     //User created by Admin
     if (!user.password) {
       return res
         .status(404)
-        .json({ message: "Click on forgot password to create a new one" });
+        .json({ status: false, message: "Click on forgot password to create a new one" });
     }
 
     // Check if the user's account is locked due to too many failed login attempts
-    console.log(
-      "process.env.MAX_FAILED_LOGIN_ATTEMPTS",
-      process.env.MAX_FAILED_LOGIN_ATTEMPTS
-    );
     if (user.failedLoginAttempts >= process.env.MAX_FAILED_LOGIN_ATTEMPTS) {
       return res.status(401).json({
+        status: false,
         message: "Account is locked due to too many failed login attempts",
       });
     }
@@ -118,7 +116,7 @@ class UsersController {
       // Increment the failed login attempts count
       user.failedLoginAttempts++;
       await userSchema.update({ userId: user.userId }, user);
-      return res.status(401).json({ message: "Invalid password" });
+      return res.status(401).json({ status: false, message: "Invalid password" });
     }
 
     // Reset the failed login attempts count upon successful login
@@ -132,7 +130,7 @@ class UsersController {
     }
     const min = 100000;
     const max = 999999;
-    const resetToken =666666
+    const resetToken = 666666;
     // const resetToken = Math.floor(
     //   min + Math.random() * (max - min + 1)
     // ).toString();
@@ -153,33 +151,35 @@ class UsersController {
       console.error("Error reading the file:", err);
     }
 
+    await userSchema.update(
+      { userId: user.userId },
+      { resetToken: resetToken }
+    );
     // Respond with success
-    res.status(200).json({ status: true });
+    res.status(200).json({ status: true, message: "Email Verification required to log in successfully" });
   }
 
   async verifyEmail(req, res) {
-    const { email, verificationCode } = req.body;
+    const { email, code } = req.body;
 
     // Verify the token and its expiration date in the database
     let user = await userSchema.find({ email: email });
-    if (user.resetToken !== verificationCode) {
-      return res.status(401).json({ message: "Invalid Verification token" });
+    if (user.resetToken !== code) {
+      return res.status(401).json({ status: false, message: "Invalid Verification token" });
     }
 
     const payload = {
       userId: user.userId,
+      email: user.email,
     };
 
     // Generate the JWT token
     const token = signToken(payload);
 
     // Respond with success
-    res.status(200).json({ token: token });
-    
-    await userSchema.update(
-      { userId: user.userId },
-      { resetToken: null }
-    );
+    res.status(200).json({ status: true, token: token, message: "Logged In successfully" });
+
+    await userSchema.update({ userId: user.userId }, { resetToken: null });
   }
 
   async forgotPassword(req, res) {
@@ -187,14 +187,14 @@ class UsersController {
     // Find the user by email
     const user = await userSchema.find({ email: email });
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ status: false, message: "User not found" });
     }
 
     // Generate a reset token
     // const resetToken = crypto.randomBytes(20).toString("hex");
     const min = 100000;
     const max = 999999;
-    const resetToken =666666
+    const resetToken = 666666;
 
     // const resetToken = Math.floor(
     //   min + Math.random() * (max - min + 1)
@@ -225,10 +225,9 @@ class UsersController {
       console.error("Error reading the file:", err);
     }
 
-
     // await sendSMS(body);
 
-    res.status(200).json({ message: "Password reset email and sms sent" });
+    res.status(200).json({ status: true, message: "Password reset email and sms sent" });
   }
 
   async resetPassword(req, res) {
@@ -237,7 +236,7 @@ class UsersController {
     // Verify the token and its expiration date in the database
     let user = await userSchema.find({ email: email });
     if (user.resetToken !== resetToken) {
-      return res.status(401).json({ message: "Invalid Reset token" });
+      return res.status(401).json({ status: false, message: "Invalid Reset token" });
     }
     // If the token is valid, update the user's password
     const hashedPassword = await argon2.hash(newPassword);
@@ -246,7 +245,7 @@ class UsersController {
       { password: hashedPassword, resetToken: null }
     );
 
-    res.status(200).json({ message: "Password reset successfully" });
+    res.status(200).json({ status: true, message: "Password reset successfully" });
   }
 
   async generateUnlockCode(req, res) {
@@ -255,13 +254,13 @@ class UsersController {
 
     const user = await userSchema.find({ email: email });
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ status: false, message: "User not found" });
     }
 
     // Generate a random 6-digit unlock code
     const min = 100000;
     const max = 999999;
-    const unlockCode =666666
+    const unlockCode = 666666;
 
     // const unlockCode = Math.floor(
     //   min + Math.random() * (max - min + 1)
@@ -290,7 +289,7 @@ class UsersController {
 
     // await sendSMS(body);
 
-    res.status(200).json({ message: "Unlock code sent via email and sms" });
+    res.status(200).json({ status: true, message: "Unlock code sent via email and sms" });
   }
 
   async unlockAccount(req, res) {
@@ -299,12 +298,12 @@ class UsersController {
     // Find the user by email
     const user = await userSchema.find({ email: email });
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ status: false, message: "User not found" });
     }
 
     // Check if the unlock code matches the one sent to the user
     if (user.unlockCode !== unlockCode) {
-      return res.status(401).json({ message: "Invalid unlock code" });
+      return res.status(401).json({ status: false, message: "Invalid unlock code" });
     }
 
     // Verify the user's identity (e.g., through email confirmation or other methods)
@@ -318,7 +317,12 @@ class UsersController {
 
     // Notify the user that their account is unlocked
 
-    res.status(200).json({ message: "Account unlocked successfully" });
+    res.status(200).json({ status: true, message: "Account unlocked successfully" });
+  }
+
+  async logoutUser(req, res) {
+    await Blacklist.create({ token: req.headers.authorization.split(" ")[1] });
+    res.status(200).json({ status: true, message: "Successfully Logged out" });
   }
 }
 

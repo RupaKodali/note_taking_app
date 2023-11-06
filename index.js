@@ -4,10 +4,16 @@ require('./utils/mongoose-bootstrapper.js');
 require('./config/index.js');
 const userRouter = require('./routes/user.route.js');
 const noteRouter = require('./routes/note.route.js');
+const cors = require("cors")
+const cookieParser = require("cookie-parser");
 
 const { verifyToken } = require('./utils/jwt.js');
 
 const app = express();
+app.use(cors());
+app.disable("x-powered-by"); //Reduce fingerprinting
+app.use(cookieParser());
+app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.get('/', (req, res) => {
     res.send('Welcome to Note taking app'); // Set your welcome message here
