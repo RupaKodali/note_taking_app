@@ -41,6 +41,7 @@ class NoteController {
       let note = await NoteSchema.find({
         noteId: req.query.id,
         userId: req.user.userId,
+        isDeleted: false
       });
 
       // Decrypt the note content before returning it to the user
@@ -48,7 +49,7 @@ class NoteController {
         let new_note = JSON.parse(JSON.stringify(note));
         new_note.description = await decrypt(note.encryptedContent, user.encryptionKey);
         delete new_note.encryptedContent
-        return res.status(200).json({ status: true, data: new_note, message: "Sucessfully opned notes" });
+        return res.status(200).json({ status: true, data: new_note, message: "Sucessfully opened notes" });
 
       } else {
         return res.status(404).json({ status: false, message: "Note not found" });
@@ -63,7 +64,7 @@ class NoteController {
     try {
       const user = await userSchema.find({ userId: req.user.userId });
       if (!user) {
-        return res.status(404).json({ status:false, message: "Invalid User" });
+        return res.status(404).json({ status: false, message: "Invalid User" });
       }
 
       // const page = req.query.page ? parseInt(req.query.page) : 1;
@@ -71,7 +72,7 @@ class NoteController {
 
       // Find all notes for the user with pagination
       // const notes = await NoteSchema.paginate({ userId: req.user.userId }, page, pageSize)
-      const notes = await NoteSchema.findAll({ userId: req.user.userId })
+      const notes = await NoteSchema.findAll({ userId: req.user.userId, isDeleted: false })
       let new_notes = []
       // Decrypt the note content for each note
       for (let note of notes) {
@@ -84,10 +85,55 @@ class NoteController {
       return res.status(200).json({ status: true, data: new_notes, messgae: "Successfully listed all the notes" });
     } catch (error) {
       console.log("error", error);
-      return res.status(500).json({status:false, message: "Internal Server Error" });
+      return res.status(500).json({ status: false, message: "Internal Server Error" });
     }
   }
 
+  async deleteNote(req, res) {
+    try {
+      const user = await userSchema.find({ userId: req.user.userId });
+      if (!user) {
+        return res.status(404).json({ status: false, message: "Invalid User" });
+      }
+
+      // Find the note document by its ID
+      let note = await NoteSchema.softDelete({
+        noteId: req.query.id,
+        userId: req.user.userId,
+      });
+      return res.status(200).json({ status: true, message: "Sucessfully deleted notes" });
+
+    } catch (error) {
+      console.log("error", error);
+      return res.status(500).json({ status: false, message: "Internal Server Error" });
+    }
+  }
+
+  async updateNote(req, res) {
+    try {
+      const user = await userSchema.find({ userId: req.user.userId });
+      if (!user) {
+        return res.status(404).json({ status: false, message: "Invalid User" });
+      }
+      // Encrypt the note content before saving it to the database
+      const encryptedContent = await encrypt(req.body.description, user.encryptionKey);
+
+      // update the note document by its ID
+      let note = await NoteSchema.update({
+        noteId: req.query.id,
+        userId: req.user.userId,
+      }, {
+        title: req.body.title,
+        encryptedContent: encryptedContent
+      });
+
+      return res.status(200).json({ status: true, data: note, message: "Sucessfully updated the note" });
+
+    } catch (error) {
+      console.log("error", error);
+      return res.status(500).json({ status: false, message: "Internal Server Error" });
+    }
+  }
 }
 
 module.exports = NoteController;
