@@ -23,7 +23,7 @@ class UsersController {
 
       // Check if the user already exists
       const existingUser = await userSchema.find({ email: email });
-      if (existingUser.length > 0) {
+      if (existingUser) {
         return res.status(409).json({ status: false, message: "User already exists" });
       }
 
