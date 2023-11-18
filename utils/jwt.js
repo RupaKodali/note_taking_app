@@ -24,7 +24,7 @@ const verifyToken = async (req, res, next) => {
       .json({ status: false, message: "No token provided" });
   }
   let blacklisted = await Blacklist.find({ token: token });
-console.log("blacklisted",blacklisted);
+  // console.log("blacklisted",blacklisted);
   if (blacklisted) {
     return res
       .status(401)

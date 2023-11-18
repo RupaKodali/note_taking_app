@@ -49,7 +49,7 @@ class ModelMethods {
   findAll = async (query = {}) => {
     try {
       // Use the model associated with this.Model to find documents that match the query
-      const result = await this.Model.find(query);
+      const result = await this.Model.find(query).sort({ 'cd': -1 });
 
       if (!result || result.length === 0) {
         // console.log('No documents found for the provided query.');

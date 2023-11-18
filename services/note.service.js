@@ -14,6 +14,10 @@ class NoteController {
       // Encrypt the note content before saving it to the database
       const encryptedContent = await encrypt(req.body.description, user.encryptionKey);
 
+      if ((req.body.description).length <= 0 && (req.body.title).length <= 0) {
+        return res.status(200).json({ status: true, message: "empty note" });
+      }
+
       // Create a new note document
       const note = await NoteSchema.create({
         userId: req.user.userId,
