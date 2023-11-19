@@ -1,0 +1,27 @@
+{
+  "name": "note_taking_app",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@vonage/server-sdk": "^3.10.0",
+    "argon2": "^0.31.1",
+    "confidence": "^5.0.1",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "glob": "^10.3.10",
+    "mongoose": "^8.0.0",
+    "mongoose-paginate-v2": "^1.7.4",
+    "morgan": "^1.10.0",
+    "nodemailer": "^6.9.7",
+    "nodemon": "^3.0.1",
+    "uuid": "^9.0.1"
+  }
+}

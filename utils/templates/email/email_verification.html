@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Password Reset</title>
+  <style>
+    .container {
+      font-size: 16px;
+      color: #333;
+    }
+
+    .header {
+      text-align: center;
+      padding-bottom: 20px;
+      background-color: #f2f2f2;
+      align-items: center;
+      width: 100%;
+      display: flex; /* Use a flexbox layout */
+      justify-content: center; /* Center content horizontally */
+    }
+
+    .content {
+      text-align: left;
+      padding: 40px 30px;
+      background-color: #ffffff;
+    }
+
+    .footer {
+      text-align: center;
+      padding-top: 20px;
+      padding-bottom: 20px;
+      background-color: #f2f2f2;
+      color: #666;
+    }
+
+    .logo {
+      max-width: 200px;
+      max-height: 150px;
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: 2%;
+    }
+
+    .text-content {
+      display: inline-block;
+      text-align: left;
+    }
+
+    .button {
+      background-color: #007bff;
+      color: white;
+      padding: 10px 20px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+      margin: 4px 2px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="https://i.ibb.co/QN1GfsC/splash.png" alt="Company Logo" class="logo">
+      <div class="text-content">
+        <h1>Note Down.</h1>
+        <p>A secure note-taking app</p>
+      </div>
+    </div>
+
+    <div class="content">
+      <h1>Verify your Email</h1>
+      <p>Hi {{Username}},</p>
+      <p>Your Verification code is: <strong> {{PasswordResetCode}}</strong></p>
+    </div>
+
+    <div class="footer">
+      <p>&copy; Note Down 2023</p>
+   
