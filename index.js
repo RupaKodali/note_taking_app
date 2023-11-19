@@ -18,7 +18,9 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.get('/', (req, res) => {
     res.send('Welcome to Note taking app'); // Set your welcome message here
-  });
+});
+app.use("/public", express.static( "public"));
+
 app.use("/users", userRouter);
 app.use(verifyToken);
 app.use("/note", noteRouter);
