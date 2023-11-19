@@ -106,7 +106,7 @@ class UsersController {
     if (user.failedLoginAttempts >= process.env.MAX_FAILED_LOGIN_ATTEMPTS) {
       return res.status(401).json({
         status: false,
-        message: "Account is locked due to too many failed login attempts",
+        message: "Account is locked due to too many failed login attempts, Click on Forgot password to Unlock and create a new password",
       });
     }
 
@@ -211,15 +211,28 @@ class UsersController {
 
     // Send the email to the user
     try {
-      const data = await fs.readFileSync(
-        "utils/templates/email/forgot_password.html",
-        "utf8"
-      );
-      let subject = "Password reset";
-      var html = await fillTemplateWithData(data, {
-        Username: user.firstName + user.lastName,
-        PasswordResetCode: resetToken,
-      });
+      if (user.failedLoginAttempts >= process.env.MAX_FAILED_LOGIN_ATTEMPTS) {
+        var data = await fs.readFileSync(
+          "utils/templates/email/unlock_account.html",
+          "utf8"
+        );
+        var subject = "Unlock your account";
+        var html = await fillTemplateWithData(data, {
+          Username: user.firstName + user.lastName,
+          PasswordResetCode: resetToken,
+        });
+      } else {
+        var data = await fs.readFileSync(
+          "utils/templates/email/forgot_password.html",
+          "utf8"
+        );
+        var subject = "Password reset";
+        var html = await fillTemplateWithData(data, {
+          Username: user.firstName + user.lastName,
+          PasswordResetCode: resetToken,
+        });
+      }
+
       await sendCustomEmail(user.email, subject, html);
     } catch (err) {
       console.error("Error reading the file:", err);
@@ -240,11 +253,15 @@ class UsersController {
     }
     // If the token is valid, update the user's password
     const hashedPassword = await argon2.hash(newPassword);
+    if (user.failedLoginAttempts >= process.env.MAX_FAILED_LOGIN_ATTEMPTS) {
+      var failedLoginAttempts=0
+    }
     await userSchema.update(
       { userId: user.userId },
-      { password: hashedPassword, resetToken: null }
+      { password: hashedPassword, resetToken: null,failedLoginAttempts:failedLoginAttempts }
     );
 
+   
     res.status(200).json({ status: true, message: "Password reset successfully" });
   }
 
