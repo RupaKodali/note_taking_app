@@ -6,11 +6,12 @@ const userRouter = require('./routes/user.route.js');
 const noteRouter = require('./routes/note.route.js');
 const cors = require("cors")
 const cookieParser = require("cookie-parser");
-
+const morgan = require('morgan')
 const { verifyToken } = require('./utils/jwt.js');
 
 const app = express();
 app.use(cors());
+app.use(morgan('dev'));
 app.disable("x-powered-by"); //Reduce fingerprinting
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: false }));
