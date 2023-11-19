@@ -130,10 +130,10 @@ class UsersController {
     }
     const min = 100000;
     const max = 999999;
-    const resetToken = 666666;
-    // const resetToken = Math.floor(
-    //   min + Math.random() * (max - min + 1)
-    // ).toString();
+    // const resetToken = 666666;
+    const resetToken = Math.floor(
+      min + Math.random() * (max - min + 1)
+    ).toString();
 
     // Send the email to the user
     try {
@@ -146,7 +146,7 @@ class UsersController {
         Username: user.firstName + user.lastName,
         PasswordResetCode: resetToken,
       });
-      // await sendCustomEmail(user.email, subject, html);
+      await sendCustomEmail(user.email, subject, html);
     } catch (err) {
       console.error("Error reading the file:", err);
     }
@@ -194,11 +194,11 @@ class UsersController {
     // const resetToken = crypto.randomBytes(20).toString("hex");
     const min = 100000;
     const max = 999999;
-    const resetToken = 666666;
+    // const resetToken = 666666;
 
-    // const resetToken = Math.floor(
-    //   min + Math.random() * (max - min + 1)
-    // ).toString();
+    const resetToken = Math.floor(
+      min + Math.random() * (max - min + 1)
+    ).toString();
 
     // Store the token and its expiration date in the user's record in the database
     await userSchema.update(
@@ -220,7 +220,7 @@ class UsersController {
         Username: user.firstName + user.lastName,
         PasswordResetCode: resetToken,
       });
-      // await sendCustomEmail(user.email, subject, html);
+      await sendCustomEmail(user.email, subject, html);
     } catch (err) {
       console.error("Error reading the file:", err);
     }
@@ -260,11 +260,11 @@ class UsersController {
     // Generate a random 6-digit unlock code
     const min = 100000;
     const max = 999999;
-    const unlockCode = 666666;
+    // const unlockCode = 666666;
 
-    // const unlockCode = Math.floor(
-    //   min + Math.random() * (max - min + 1)
-    // ).toString();
+    const unlockCode = Math.floor(
+      min + Math.random() * (max - min + 1)
+    ).toString();
 
     await userSchema.update(
       { userId: user.userId },
@@ -282,7 +282,7 @@ class UsersController {
         Username: user.firstName + user.lastName,
         PasswordResetCode: unlockCode,
       });
-      // await sendCustomEmail(user.email, subject, html);
+      await sendCustomEmail(user.email, subject, html);
     } catch (err) {
       console.error("Error reading the file:", err);
     }
